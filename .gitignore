@@ -205,3 +205,22 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+# Never push it
+.env
+
+# Vertiual env
+.venv/
+
+# Spark and Delta local
+spark-warehouse/
+derby.log
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
