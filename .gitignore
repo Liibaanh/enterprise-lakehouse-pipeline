@@ -213,7 +213,7 @@ __marimo__/
 # Vertiual env
 .venv/
 
-# Spark and Delta local
+# Spark andss Delta local
 spark-warehouse/
 derby.log
 __pycache__/
