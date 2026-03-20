@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+
+  # Main application — runs pipeline code and tests
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: runtime
+    env_file: ../.env
+    volumes:
+      - ..:/app           # Live reload — code changes apply immediately
+      - spark-tmp:/tmp/spark
+    environment:
+      - PYTHONPATH=/app
+      - AWS_DEFAULT_REGION=eu-west-1
+    command: ["bash"]
+    stdin_open: true
+    tty: true
+
+  # LocalStack — emulates AWS S3 locally
+  # No real AWS account needed during development
+  localstack:
+    image: localstack/localstack:3.4
+    ports:
+      - "4566:4566"       # All AWS services available on this port locally
+    environment:
+      - SERVICES=s3       # Only emulate S3 — keeps it lightweight
+      - DEFAULT_REGION=eu-west-1
+      - DATA_DIR=/var/lib/localstack
+    volumes:
+      - localstack-data:/var/lib/localstack
+
+volumes:
+  spark-tmp:
+  localstack-data:
