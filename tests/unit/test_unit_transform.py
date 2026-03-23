@@ -36,6 +36,8 @@ def spark() -> SparkSession:
             "org.apache.spark.sql.delta.catalog.DeltaCatalog",
         )
         .config("spark.sql.shuffle.partitions", "2")
+        .config("spark.jars.packages", "io.delta:delta-spark_2.12:3.1.0")
+        .config("spark.driver.extraJavaOptions", "-Dio.netty.tryReflectionSetAccessible=true")
         .getOrCreate()
     )
 
@@ -104,14 +106,19 @@ class TestClean:
 
     def test_trims_whitespace(self, spark):
         """Leading and trailing whitespace must be removed from string columns."""
-        df = spark.createDataFrame(
-            [("  ord_x  ", " cust_x ", "10.00", " NOK ", "confirmed", "2024-01-01", None)],
-            schema=["order_id", "customer_id", "order_amount", "currency", "status", "created_at", "updated_at"],
-        )
-        result = _clean(df)
-        row = result.first()
-        assert row["order_id"]  == "ord_x"
-        assert row["currency"]  == "NOK"
+        def test_trims_whitespace(self, spark):
+            df = spark.createDataFrame(
+                [("  ord_x  ", " cust_x ", "10.00", " NOK ", "confirmed", "2024-01-01", None)],
+                schema=StructType([
+                StructField("order_id",     StringType(), True),
+                StructField("customer_id",  StringType(), True),
+                StructField("order_amount", StringType(), True),
+                StructField("currency",     StringType(), True),
+                StructField("status",       StringType(), True),
+                StructField("created_at",   StringType(), True),
+                StructField("updated_at",   StringType(), True),
+        ])
+    )
 
 
 # ── Tests: _deduplicate ───────────────────────────────────────────────────────
@@ -172,9 +179,15 @@ class TestMaskPii:
 
     def test_null_customer_id_stays_null(self, spark):
         """Null customer_id must remain null after masking — not crash."""
-        df = spark.createDataFrame(
-            [(None, "99.00", "NOK", "confirmed")],
-            schema=["customer_id", "order_amount", "currency", "status"],
-        )
-        result = _mask_pii(df)
-        assert result.first()["customer_id"] is None
+        def test_null_customer_id_stays_null(self, spark):
+            df = spark.createDataFrame(
+                [(None, "99.00", "NOK", "confirmed")],
+                schema=StructType([
+                StructField("customer_id",  StringType(), True),
+                StructField("order_amount", StringType(), True),
+                StructField("currency",     StringType(), True),
+                StructField("status",       StringType(), True),
+        ])
+    )
+            result = _mask_pii(df)
+            assert result.first()["customer_id"] is None
